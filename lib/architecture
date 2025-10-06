@@ -1,0 +1,34 @@
+lib/
+├── main.dart
+├── core/
+│   ├── database/
+│   │   └── isar_service.dart          # Инициализация БД
+│   └── constants/
+│       └── app_constants.dart
+├── models/
+│   ├── note.dart                      # Модель заметки
+│   ├── chat_message.dart              # Модель сообщения чата
+│   └── chat_session.dart              # Модель сессии чата
+├── repositories/
+│   ├── note_repository.dart           # CRUD для заметок
+│   └── chat_repository.dart           # CRUD для чата
+├── services/
+│   └── ai_service.dart                # Интеграция с AI API
+├── providers/
+│   ├── note_provider.dart             # State для заметок
+│   └── chat_provider.dart             # State для чата
+├── screens/
+│   ├── home/
+│   │   ├── home_screen.dart
+│   │   └── widgets/
+│   │       └── note_card.dart
+│   ├── note_detail/
+│   │   └── note_detail_screen.dart
+│   └── chat/
+│       ├── chat_screen.dart
+│       └── widgets/
+│           ├── message_bubble.dart
+│           └── chat_input.dart
+└── widgets/
+    └── common/
+        └── loading_indicator.dart

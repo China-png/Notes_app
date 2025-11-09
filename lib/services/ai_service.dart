@@ -3,18 +3,17 @@ import '../models/chat_message.dart';
 
 class AIService {
   late GenerativeModel _model;
-  static const String _apiKey = 'YOUR_GEMINI_API_KEY'; // Получить на ai.google.dev
+  static const String _apiKey = 'AIzaSyCbNniLgMcfYw5SsKg-7uu_EZMhmj9VSBI';
 
   AIService() {
+    // Попробуйте эти модели по порядку, если одна не работает:
+    // 'gemini-pro' - старая стабильная
+    // 'gemini-1.5-flash' - новая быстрая
+    // 'gemini-1.5-pro' - новая мощная
+
     _model = GenerativeModel(
-      model: 'gemini-pro',
+      model: 'gemini-pro', // Используем старую проверенную версию
       apiKey: _apiKey,
-      generationConfig: GenerationConfig(
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024,
-      ),
     );
   }
 
@@ -22,9 +21,14 @@ class AIService {
   Future<String> sendMessage(String message, List<ChatMessage> history) async {
     try {
       // Конвертировать историю в формат Gemini
-      final chatHistory = history.map((msg) {
-        return Content.text(msg.content);
-      }).toList();
+      final chatHistory = <Content>[];
+
+      for (var msg in history) {
+        chatHistory.add(Content(
+          msg.sender == 'user' ? 'user' : 'model',
+          [TextPart(msg.content)],
+        ));
+      }
 
       // Создать чат с историей
       final chat = _model.startChat(history: chatHistory);
@@ -41,9 +45,14 @@ class AIService {
   // Стриминг ответа (для печатающегося эффекта)
   Stream<String> sendMessageStream(String message, List<ChatMessage> history) async* {
     try {
-      final chatHistory = history.map((msg) {
-        return Content.text(msg.content);
-      }).toList();
+      final chatHistory = <Content>[];
+
+      for (var msg in history) {
+        chatHistory.add(Content(
+          msg.sender == 'user' ? 'user' : 'model',
+          [TextPart(msg.content)],
+        ));
+      }
 
       final chat = _model.startChat(history: chatHistory);
       final response = chat.sendMessageStream(Content.text(message));

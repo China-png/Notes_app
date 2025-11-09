@@ -12,7 +12,7 @@ class AIService {
     // 'gemini-1.5-pro' - новая мощная
 
     _model = GenerativeModel(
-      model: 'gemini-pro', // Используем старую проверенную версию
+      model: 'gemini-2.0-flash-exp', // Используем старую проверенную версию
       apiKey: _apiKey,
     );
   }
@@ -156,5 +156,43 @@ $content
     } catch (e) {
       return content;
     }
+  }
+
+  // Проверка доступных моделей и вывод списка
+  Future<String> listAvailableModels() async {
+    final modelsToTest = [
+      'gemini-pro',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+      'gemini-1.0-pro',
+      'gemini-2.0-flash-exp',
+    ];
+
+    String result = 'Проверка доступных моделей:\n\n';
+
+    for (var modelName in modelsToTest) {
+      try {
+        final testModel = GenerativeModel(
+          model: modelName,
+          apiKey: _apiKey,
+        );
+
+        final response = await testModel.generateContent([
+          Content.text('Ответь одним словом: привет')
+        ]);
+
+        if (response.text != null && response.text!.isNotEmpty) {
+          result += '✅ $modelName - РАБОТАЕТ\n';
+          result += '   Ответ: ${response.text}\n\n';
+        } else {
+          result += '❌ $modelName - Пустой ответ\n\n';
+        }
+      } catch (e) {
+        result += '❌ $modelName - ОШИБКА\n';
+        result += '   ${e.toString()}\n\n';
+      }
+    }
+
+    return result;
   }
 }

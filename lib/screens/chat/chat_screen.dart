@@ -122,6 +122,43 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         title: Text(_currentSession.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () async {
+              // Показать загрузку
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+
+              // Проверить модели
+              final result = await _aiService.listAvailableModels();
+
+              if (mounted) {
+                Navigator.pop(context); // Закрыть загрузку
+
+                // Показать результат
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Доступные модели'),
+                    content: SingleChildScrollView(
+                      child: Text(result),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Закрыть'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'clear') {

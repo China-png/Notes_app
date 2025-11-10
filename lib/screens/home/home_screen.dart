@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../models/note.dart';
 import '../../providers/note_provider.dart';
 import '../note_detail/note_detail_screen.dart';
-import '../chat/chat_screen.dart';
+import '../chat/chat_list_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -60,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ChatScreen()),
+                MaterialPageRoute(builder: (_) => const ChatListScreen()),
               );
             },
           ),

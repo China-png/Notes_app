@@ -52,12 +52,23 @@ class NotificationService {
 
   // Запрос разрешений
   Future<bool> requestPermissions() async {
-    if (await Permission.notification.isGranted) {
-      return true;
+    // Запрос разрешения на уведомления
+    if (!await Permission.notification.isGranted) {
+      final status = await Permission.notification.request();
+      if (!status.isGranted) return false;
     }
 
-    final status = await Permission.notification.request();
-    return status.isGranted;
+    // Для Android 12+ запросить разрешение на точные будильники
+    if (await Permission.scheduleExactAlarm.isDenied) {
+      final status = await Permission.scheduleExactAlarm.request();
+      if (!status.isGranted) {
+        // Если отказано, открыть настройки
+        await openAppSettings();
+        return false;
+      }
+    }
+
+    return true;
   }
 
   // Запланировать уведомление

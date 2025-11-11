@@ -28,6 +28,11 @@ class Note {
   // Добавлена ли в избранное
   bool isFavorite = false;
 
+  // Напоминание
+  DateTime? reminderTime;
+
+  bool hasReminder = false;
+
   Note({
     this.id = Isar.autoIncrement,
     required this.title,
@@ -38,6 +43,8 @@ class Note {
     this.colorCode,
     this.isPinned = false,
     this.isFavorite = false,
+    this.reminderTime,
+    this.hasReminder = false,
   });
 
   // Копирование с изменениями
@@ -51,6 +58,8 @@ class Note {
     int? colorCode,
     bool? isPinned,
     bool? isFavorite,
+    DateTime? reminderTime,   // ← должно быть
+    bool? hasReminder,
   }) {
     return Note(
       id: id ?? this.id,
@@ -62,6 +71,8 @@ class Note {
       colorCode: colorCode ?? this.colorCode,
       isPinned: isPinned ?? this.isPinned,
       isFavorite: isFavorite ?? this.isFavorite,
+      reminderTime: reminderTime ?? this.reminderTime,
+      hasReminder: hasReminder ?? this.hasReminder,
     );
   }
 }

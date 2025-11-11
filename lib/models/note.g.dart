@@ -32,28 +32,38 @@ const NoteSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'isFavorite': PropertySchema(
+    r'hasReminder': PropertySchema(
       id: 3,
+      name: r'hasReminder',
+      type: IsarType.bool,
+    ),
+    r'isFavorite': PropertySchema(
+      id: 4,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'isPinned': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isPinned',
       type: IsarType.bool,
     ),
+    r'reminderTime': PropertySchema(
+      id: 6,
+      name: r'reminderTime',
+      type: IsarType.dateTime,
+    ),
     r'tags': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -126,11 +136,13 @@ void _noteSerialize(
   writer.writeLong(offsets[0], object.colorCode);
   writer.writeString(offsets[1], object.content);
   writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeBool(offsets[3], object.isFavorite);
-  writer.writeBool(offsets[4], object.isPinned);
-  writer.writeStringList(offsets[5], object.tags);
-  writer.writeString(offsets[6], object.title);
-  writer.writeDateTime(offsets[7], object.updatedAt);
+  writer.writeBool(offsets[3], object.hasReminder);
+  writer.writeBool(offsets[4], object.isFavorite);
+  writer.writeBool(offsets[5], object.isPinned);
+  writer.writeDateTime(offsets[6], object.reminderTime);
+  writer.writeStringList(offsets[7], object.tags);
+  writer.writeString(offsets[8], object.title);
+  writer.writeDateTime(offsets[9], object.updatedAt);
 }
 
 Note _noteDeserialize(
@@ -143,12 +155,14 @@ Note _noteDeserialize(
     colorCode: reader.readLongOrNull(offsets[0]),
     content: reader.readString(offsets[1]),
     createdAt: reader.readDateTime(offsets[2]),
+    hasReminder: reader.readBoolOrNull(offsets[3]) ?? false,
     id: id,
-    isFavorite: reader.readBoolOrNull(offsets[3]) ?? false,
-    isPinned: reader.readBoolOrNull(offsets[4]) ?? false,
-    tags: reader.readStringList(offsets[5]) ?? const [],
-    title: reader.readString(offsets[6]),
-    updatedAt: reader.readDateTime(offsets[7]),
+    isFavorite: reader.readBoolOrNull(offsets[4]) ?? false,
+    isPinned: reader.readBoolOrNull(offsets[5]) ?? false,
+    reminderTime: reader.readDateTimeOrNull(offsets[6]),
+    tags: reader.readStringList(offsets[7]) ?? const [],
+    title: reader.readString(offsets[8]),
+    updatedAt: reader.readDateTime(offsets[9]),
   );
   return object;
 }
@@ -171,10 +185,14 @@ P _noteDeserializeProp<P>(
     case 4:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
-      return (reader.readStringList(offset) ?? const []) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
+      return (reader.readStringList(offset) ?? const []) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -758,6 +776,16 @@ extension NoteQueryFilter on QueryBuilder<Note, Note, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Note, Note, QAfterFilterCondition> hasReminderEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hasReminder',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Note, Note, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -825,6 +853,75 @@ extension NoteQueryFilter on QueryBuilder<Note, Note, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isPinned',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterFilterCondition> reminderTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'reminderTime',
+      ));
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterFilterCondition> reminderTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'reminderTime',
+      ));
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterFilterCondition> reminderTimeEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reminderTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterFilterCondition> reminderTimeGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'reminderTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterFilterCondition> reminderTimeLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'reminderTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterFilterCondition> reminderTimeBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'reminderTime',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1266,6 +1363,18 @@ extension NoteQuerySortBy on QueryBuilder<Note, Note, QSortBy> {
     });
   }
 
+  QueryBuilder<Note, Note, QAfterSortBy> sortByHasReminder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasReminder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterSortBy> sortByHasReminderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasReminder', Sort.desc);
+    });
+  }
+
   QueryBuilder<Note, Note, QAfterSortBy> sortByIsFavorite() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isFavorite', Sort.asc);
@@ -1287,6 +1396,18 @@ extension NoteQuerySortBy on QueryBuilder<Note, Note, QSortBy> {
   QueryBuilder<Note, Note, QAfterSortBy> sortByIsPinnedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isPinned', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterSortBy> sortByReminderTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterSortBy> sortByReminderTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderTime', Sort.desc);
     });
   }
 
@@ -1352,6 +1473,18 @@ extension NoteQuerySortThenBy on QueryBuilder<Note, Note, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Note, Note, QAfterSortBy> thenByHasReminder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasReminder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterSortBy> thenByHasReminderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasReminder', Sort.desc);
+    });
+  }
+
   QueryBuilder<Note, Note, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1385,6 +1518,18 @@ extension NoteQuerySortThenBy on QueryBuilder<Note, Note, QSortThenBy> {
   QueryBuilder<Note, Note, QAfterSortBy> thenByIsPinnedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isPinned', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterSortBy> thenByReminderTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Note, Note, QAfterSortBy> thenByReminderTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderTime', Sort.desc);
     });
   }
 
@@ -1433,6 +1578,12 @@ extension NoteQueryWhereDistinct on QueryBuilder<Note, Note, QDistinct> {
     });
   }
 
+  QueryBuilder<Note, Note, QDistinct> distinctByHasReminder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasReminder');
+    });
+  }
+
   QueryBuilder<Note, Note, QDistinct> distinctByIsFavorite() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isFavorite');
@@ -1442,6 +1593,12 @@ extension NoteQueryWhereDistinct on QueryBuilder<Note, Note, QDistinct> {
   QueryBuilder<Note, Note, QDistinct> distinctByIsPinned() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isPinned');
+    });
+  }
+
+  QueryBuilder<Note, Note, QDistinct> distinctByReminderTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'reminderTime');
     });
   }
 
@@ -1490,6 +1647,12 @@ extension NoteQueryProperty on QueryBuilder<Note, Note, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Note, bool, QQueryOperations> hasReminderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasReminder');
+    });
+  }
+
   QueryBuilder<Note, bool, QQueryOperations> isFavoriteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isFavorite');
@@ -1499,6 +1662,12 @@ extension NoteQueryProperty on QueryBuilder<Note, Note, QQueryProperty> {
   QueryBuilder<Note, bool, QQueryOperations> isPinnedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isPinned');
+    });
+  }
+
+  QueryBuilder<Note, DateTime?, QQueryOperations> reminderTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'reminderTime');
     });
   }
 

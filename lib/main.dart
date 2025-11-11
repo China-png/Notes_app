@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/database/isar_service.dart';
+import 'services/notification_service.dart';
 import 'screens/home/home_screen.dart';
 
 void main() async {
@@ -9,6 +10,9 @@ void main() async {
 
   // Инициализировать БД
   await IsarService.instance.isar;
+
+  // Инициализировать сервис уведомлений
+  await NotificationService().initialize();
 
   // Инициализировать локализацию дат
   await initializeDateFormatting('ru', null);

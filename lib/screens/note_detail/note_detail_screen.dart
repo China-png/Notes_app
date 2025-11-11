@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/note.dart';
-import '../../providers/note_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+  import '../../providers/note_provider.dart';
+import '../../services/notification_service.dart';
 
 class NoteDetailScreen extends ConsumerStatefulWidget {
   final Note note;
@@ -16,6 +17,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
   bool _isModified = false;
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
@@ -77,6 +79,9 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
           PopupMenuButton<String>(
             onSelected: (value) async {
               switch (value) {
+                case 'reminder':
+                  _showReminderPicker();
+                  break;
                 case 'share':
                 // Реализовать шаринг
                   break;
@@ -96,6 +101,16 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                     Icon(Icons.palette),
                     SizedBox(width: 8),
                     Text('Цвет'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'reminder',
+                child: Row(
+                  children: [
+                    Icon(Icons.alarm),
+                    SizedBox(width: 8),
+                    Text('Напоминание'),
                   ],
                 ),
               ),
@@ -254,5 +269,121 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
         ),
       ),
     );
+  }
+
+  void _showReminderPicker() async {
+    final now = DateTime.now();
+
+    // Выбор даты
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: widget.note.reminderTime ?? now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+
+    if (selectedDate == null || !mounted) return;
+
+    // Выбор времени
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+        widget.note.reminderTime ?? now.add(const Duration(hours: 1)),
+      ),
+    );
+
+    if (selectedTime == null || !mounted) return;
+
+    // Комбинировать дату и время
+    final reminderDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
+    // Проверить что время в будущем
+    if (reminderDateTime.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Выберите время в будущем')),
+      );
+      return;
+    }
+
+    // Сохранить напоминание
+    final updatedNote = widget.note.copyWith(
+      reminderTime: reminderDateTime,
+      hasReminder: true,
+    );
+
+    await ref.read(noteControllerProvider.notifier).updateNote(updatedNote);
+
+    // Запланировать уведомление
+    try {
+      await _notificationService.scheduleNotification(
+        id: widget.note.id,
+        title: 'Напоминание: ${updatedNote.title}',
+        body: updatedNote.content.length > 100
+            ? '${updatedNote.content.substring(0, 100)}...'
+            : updatedNote.content,
+        scheduledTime: reminderDateTime,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Напоминание установлено на ${_formatDateTime(reminderDateTime)}',
+            ),
+            action: SnackBarAction(
+              label: 'Отменить',
+              onPressed: () => _cancelReminder(),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancelReminder() async {
+    await _notificationService.cancelNotification(widget.note.id);
+
+    final updatedNote = widget.note.copyWith(
+      reminderTime: null,
+      hasReminder: false,
+    );
+
+    await ref.read(noteControllerProvider.notifier).updateNote(updatedNote);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Напоминание отменено')),
+      );
+    }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final date = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    String dateStr;
+    if (date == today) {
+      dateStr = 'Сегодня';
+    } else if (date == tomorrow) {
+      dateStr = 'Завтра';
+    } else {
+      dateStr = '${dateTime.day}.${dateTime.month}.${dateTime.year}';
+    }
+
+    return '$dateStr в ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

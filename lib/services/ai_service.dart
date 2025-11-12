@@ -12,7 +12,7 @@ class AIService {
     // 'gemini-1.5-pro' - новая мощная
 
     _model = GenerativeModel(
-      model: 'gemini-2.0-flash-exp', // Используем старую проверенную версию
+      model: 'gemini-2.5-flash-lite', // Используем старую проверенную версию
       apiKey: _apiKey,
     );
   }
@@ -166,6 +166,18 @@ $content
       'gemini-1.5-pro',
       'gemini-1.0-pro',
       'gemini-2.0-flash-exp',
+      'gemini-2.0-flash-live',
+      'gemini-2.5-flash-native-audio-dialog',
+      'gemini-2.5-flash-live',
+      'learnlm-2.0-flash-experimental',
+      'gemini-robotics-er-1.5-preview',
+      'gemini-2.5-flash-tts',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-preview-image-generation',
+      'gemini-2.5-flash-lite',
+      'gemini-2.0-flash-lite',
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
     ];
 
     String result = 'Проверка доступных моделей:\n\n';
